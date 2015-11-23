@@ -1,0 +1,63 @@
+Eye.application('{{app_name}}') do |app|
+  env 'APP_ENV' => '{{app_stage}}'
+  env 'RAILS_ENV' => '{{app_stage}}'
+
+  app_base_dir = '/u/apps/{{app_name}}'
+  resque_workers = 3
+
+  working_dir File.join(app_base_dir, 'current')
+  trigger :flapping, times: 10, within: 1.minute
+
+  group 'services' do
+    process :puma do
+      daemonize true
+      pid_file File.join(app_base_dir, 'shared/tmp/pids/puma.pid')
+      stdall File.join(app_base_dir, 'shared/log/eye-puma.log')
+
+      start_command 'bundle exec puma -C ./config/puma/{{app_stage}}.rb'
+      stop_signals [:TERM, 5.seconds, :KILL]
+      # hot restart
+      restart_command "kill -USR2 {PID}"
+
+      check :cpu, every: 30, below: 80, times: 3
+      check :memory, every: 30, below: 70.megabytes, times: [3, 5]
+
+      start_timeout 100.seconds
+      restart_grace 10.seconds # just sleep this until process get up status (maybe enought to puma soft restart)
+
+      monitor_children do
+        stop_command 'kill -TERM {PID}'
+        check :cpu, every: 30, below: 80, times: 3
+        check :memory, every: 30, below: 70.megabytes, times: [3, 5]
+      end
+    end
+  end
+
+  group 'resque' do
+    resque_workers.times do |number|
+      process :"worker_#{number}" do
+        pid_file File.join(app_base_dir, "shared/tmp/pids/resque_#{number}.pid")
+        stdall File.join(app_base_dir, 'shared/log/eye-resque.log')
+        daemonize true
+
+        start_command "bundle exec rake environment resque:work RAILS_ENV={{app_stage}} QUEUE=* PIDFILE=#{pid_file}"
+        stop_signals [:QUIT, 0, :TERM, 10.seconds, :KILL]
+
+        check :cpu, every: 30, below: 100, times: 5
+        check :memory, every: 30, below: 350.megabytes, times: 5
+      end
+    end
+
+    process :scheduler do
+      pid_file File.join(app_base_dir, "shared/tmp/pids/resque_scheduler.pid")
+      stdall File.join(app_base_dir, 'shared/log/eye-resque-scheduler.log')
+      daemonize true
+
+      start_command "bundle exec rake environment resque:scheduler RAILS_ENV={{app_stage}} PIDFILE=#{pid_file}"
+      stop_signals [:QUIT, 10]
+
+      check :cpu, every: 30, below: 100, times: 5
+      check :memory, every: 30, below: 350.megabytes, times: 5
+    end
+  end
+end

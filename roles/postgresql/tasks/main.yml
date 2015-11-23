@@ -1,0 +1,6 @@
+- name: 'apt | repository'
+  apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main' state=present
+- name: 'apt | install'
+  apt: name=postgresql-9.4 state=latest
+- name: 'start service'
+  action: service name=postgresql state=started

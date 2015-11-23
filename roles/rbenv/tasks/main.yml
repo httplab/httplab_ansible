@@ -1,0 +1,45 @@
+- name: 'clone repo'
+  git: 'repo=git://github.com/sstephenson/rbenv.git dest={{rbenv_root}} accept_hostkey=yes'
+- name: 'check ruby_build installed'
+  command: 'test -x {{rbenv_root}}/plugins/ruby-build'
+  # Check if ruby build installed and register event ruby_build_installed.
+  # Next steps will be executed only if ruby build was not installed.
+  register: 'ruby_build_installed'
+  ignore_errors: yes
+- name: 'get ruby-build'
+  git: 'repo=git://github.com/sstephenson/ruby-build.git dest={{rbenv_root}}/plugins/ruby-build accept_hostkey=yes update=yes'
+- name: 'add bin to path'
+  shell: echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> /home/{{apps_user}}/.bashrc
+  when: 'ruby_build_installed|failed'
+- name: 'init'
+  shell: echo 'eval "$(rbenv init -)"' >> /home/{{apps_user}}/.bashrc
+  when: 'ruby_build_installed|failed'
+- name: 'check ruby installed'
+  shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/bin:$PATH" rbenv versions | grep {{ruby_version}}'
+  register: 'ruby_installed'
+  ignore_errors: yes
+- name: 'install ruby'
+  shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/bin:$PATH" rbenv install {{ruby_version}}'
+  when: 'ruby_installed|failed'
+- name: 'set global ruby'
+  shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/bin:$PATH" rbenv global {{ruby_version}}'
+  when: 'ruby_installed|failed'
+- name: 'rehash'
+  shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/bin:$PATH" rbenv rehash'
+  when: 'ruby_installed|failed'
+- name: 'create .gemrc'
+  lineinfile: 'dest=/home/{{apps_user}}/.gemrc owner={{apps_user}} group={{apps_user}} mode=0644 line="gem: --no-ri --no-rdoc" create=yes'
+  when: 'ruby_installed|failed'
+- name: 'ruby | rubygems update --system'
+  shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/bin:$PATH" rbenv exec gem update --system'
+  when: 'ruby_installed|failed'
+- name: 'ruby | rubygems update'
+  shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/bin:$PATH" rbenv exec gem update'
+  when: 'ruby_installed|failed'
+- name: 'ruby | install gems'
+  shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/bin:$PATH" rbenv exec gem install {{item}}'
+  with_items:
+    - bundler
+    - eye
+    - backup
+  when: 'ruby_installed|failed'

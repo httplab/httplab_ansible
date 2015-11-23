@@ -1,0 +1,9 @@
+default_locale: 'en_US.UTF-8'
+ruby_version: '2.2.2'
+apps_user: apps
+dvps_user: dvps
+db_user: amazontool
+developers:
+  - rain
+  - jimmy
+  - beorc

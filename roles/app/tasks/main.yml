@@ -1,0 +1,36 @@
+- name: 'nginx | create config'
+  template: 'src=nginx/{{ app_stage }}.conf.j2 dest=/etc/nginx/sites-available/{{app_name}} owner=root group=root'
+- name: 'nginx | sites-enabled link'
+  file: 'src=/etc/nginx/sites-available/{{app_name}} dest=/etc/nginx/sites-enabled/{{app_name}} state=link'
+- name: 'database'
+  sudo_user: postgres
+  postgresql_db: 'name={{db_name}} state=present encoding=utf8'
+- name: 'database user'
+  sudo_user: postgres
+  postgresql_user: 'db={{db_name}} name={{db_user}} password={{db_user_password}} priv=ALL state=present'
+
+- name: 'application directories'
+  file: 'path={{item}} state=directory owner={{apps_user}} group={{apps_user}}'
+  with_items:
+    - '/u/apps/{{app_name}}'
+    - '/u/apps/{{app_name}}/shared/config'
+    - '/u/apps/{{app_name}}/shared/log'
+    - '/u/apps/{{app_name}}/shared/public'
+    - '/u/apps/{{app_name}}/shared/tmp/pids'
+    - '/u/apps/{{app_name}}/shared/tmp/sockets'
+
+- name: 'application configs'
+  template: 'src=app_configs/{{item}}.j2 dest=/u/apps/{{app_name}}/shared/config/{{item}} owner={{apps_user}} group={{apps_user}}'
+  with_items:
+    - 'database.yml'
+    - 'secrets.yml'
+    - 'redis.yml'
+
+- name: 'eye | config'
+  template: 'src=eye/{{app_stage}}.rb.j2 dest=/home/{{apps_user}}/eye/{{app_name}}.rb owner={{apps_user}} group={{apps_user}}'
+- name: 'eye | load'
+  sudo_user: '{{apps_user}}'
+  shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/shims:$PATH" . ~/.bashrc && eye load ~/eye/{{app_name}}.rb'
+- name: 'eye | restart'
+  sudo_user: '{{apps_user}}'
+  shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/shims:$PATH" . ~/.bashrc && eye restart {{app_name}}'

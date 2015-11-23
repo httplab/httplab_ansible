@@ -1,0 +1,38 @@
+upstream {{app_name}}_server {
+    server unix:/u/apps/{{app_name}}/shared/tmp/sockets/puma.sock fail_timeout=0;
+}
+
+server {
+    listen 80;
+    server_name www.{{app_host}};
+    return 301 http://{{app_host}};
+}
+
+server {
+    listen 80;
+    server_name {{app_host}};
+
+    access_log /var/log/nginx/{{app_name}}.access_log;
+    error_log /var/log/nginx/{{app_name}}.error_log;
+
+    if ($host ~* www\.(.*)) {
+       set $host_without_www $1;
+       rewrite ^(.*)$ http://$host_without_www$1 permanent;
+    }
+
+    keepalive_timeout 5;
+    client_max_body_size 4G;
+
+    root /u/apps/{{app_name}}/current/public;
+
+    try_files $uri @app;
+    location @app {
+        proxy_headers_hash_max_size 1024;
+        proxy_headers_hash_bucket_size 128;
+
+        proxy_redirect off;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+        proxy_pass http://{{app_name}}_server;
+   }
+}

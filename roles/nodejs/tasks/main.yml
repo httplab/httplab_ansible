@@ -1,0 +1,5 @@
+- name: 'apt | install'
+  apt: name={{item}} state=latest
+  with_items:
+    - nodejs
+    - npm

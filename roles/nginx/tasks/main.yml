@@ -1,0 +1,7 @@
+- name: 'apt | install'
+  apt: name=nginx state=latest
+- name: 'remove defaults'
+  file: 'path=/etc/nginx/{{ item }}/default state=absent'
+  with_items:
+    - sites-enabled
+    - sites-available

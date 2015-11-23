@@ -1,0 +1,24 @@
+---
+# Basic server setup.
+- hosts: all
+  remote_user: root
+  roles:
+    - { role: 'system_common' }
+
+- hosts: all
+  remote_user: dvps
+  sudo: true
+  roles:
+    - { role: 'nginx' }
+    - { role: 'nodejs' }
+    - { role: 'redis' }
+    - { role: 'postgresql' }
+
+# apps user environment.
+- hosts: all
+  remote_user: dvps
+  sudo: true
+  sudo_user: '{{apps_user}}'
+  roles:
+    - { role: 'rbenv' }
+    - { role: 'eye' }

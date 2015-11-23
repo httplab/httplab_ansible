@@ -1,0 +1,5 @@
+app_name: amazontool_staging
+app_host: 'amz-staging.host'
+app_stage: staging
+db_name: amazontool_staging
+

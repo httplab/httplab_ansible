@@ -1,0 +1,6 @@
+# Application deployment prerequisites.
+- hosts: all
+  remote_user: dvps
+  sudo: true
+  roles:
+    - { role: 'app' }

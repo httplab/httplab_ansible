@@ -1,0 +1,4 @@
+app_name: 'amazontool'
+app_host: 'amazontool.com'
+app_stage: 'production'
+db_name: 'amazontool_prod'
