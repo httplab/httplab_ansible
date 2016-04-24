@@ -38,7 +38,7 @@ Eye.application('{{app_name}}') do |app|
         stdall File.join(app_base_dir, 'shared/log/eye-sidekiq.log')
         daemonize true
 
-        start_command "./bin/sidekiq -e staging -C ./config/sidekiq.yml"
+        start_command "./bin/sidekiq -e {{app_stage}} -C ./config/sidekiq.yml"
 
         stop_signals [:USR1, 0, :TERM, 10.seconds, :KILL]
 

@@ -21,4 +21,4 @@
   sudo_user: '{{apps_user}}'
   roles:
     - { role: 'rbenv' }
-    - { role: 'eye' }
+    - { role: 'eye', tags: ['eye'] }

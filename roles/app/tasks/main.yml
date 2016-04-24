@@ -40,12 +40,18 @@
     - 'secrets.yml'
     - 'redis.yml'
 
+# Eye tasks
 - name: 'eye | config'
   template: 'src=eye/{{app_stage}}.rb.j2 dest=/home/{{apps_user}}/eye/{{app_name}}.rb owner={{apps_user}} group={{apps_user}}'
+  tags: ['eye']
+
 - name: 'eye | load'
   sudo_user: '{{apps_user}}'
   shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/shims:$PATH" . ~/.bashrc && eye load ~/eye/{{app_name}}.rb'
+  tags: ['eye']
+
 - name: 'eye | restart'
   sudo_user: '{{apps_user}}'
   shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/shims:$PATH" . ~/.bashrc && eye restart {{app_name}}'
   ignore_errors: yes
+  tags: ['eye']
