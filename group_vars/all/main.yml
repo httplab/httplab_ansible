@@ -8,3 +8,7 @@ developers:
   - rain
   - jimmy
   - beorc
+
+sidekiq: false
+rescue: false
+rescue_scheduller: false

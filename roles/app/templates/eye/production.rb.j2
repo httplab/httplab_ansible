@@ -31,33 +31,52 @@ Eye.application('{{app_name}}') do |app|
         check :memory, every: 30, below: 70.megabytes, times: [3, 5]
       end
     end
-  end
 
-  group 'resque' do
-    resque_workers.times do |number|
-      process :"worker_#{number}" do
-        pid_file File.join(app_base_dir, "shared/tmp/pids/resque_#{number}.pid")
-        stdall File.join(app_base_dir, 'shared/log/eye-resque.log')
+    {% if sidekiq %}
+      process :sidekiq do
+        pid_file File.join(app_base_dir, 'shared/tmp/pids/sidekiq.pid')
+        stdall File.join(app_base_dir, 'shared/log/eye-sidekiq.log')
         daemonize true
 
-        start_command "bundle exec rake environment resque:work RAILS_ENV={{app_stage}} QUEUE=* PIDFILE=#{pid_file}"
-        stop_signals [:QUIT, 0, :TERM, 10.seconds, :KILL]
+        start_command "./bin/sidekiq -e staging -C ./config/sidekiq.yml"
+
+        stop_signals [:USR1, 0, :TERM, 10.seconds, :KILL]
 
         check :cpu, every: 30, below: 100, times: 5
-        check :memory, every: 30, below: 350.megabytes, times: 5
+        check :memory, every: 30, below: 2000.megabytes, times: 5
       end
-    end
-
-    process :scheduler do
-      pid_file File.join(app_base_dir, "shared/tmp/pids/resque_scheduler.pid")
-      stdall File.join(app_base_dir, 'shared/log/eye-resque-scheduler.log')
-      daemonize true
-
-      start_command "bundle exec rake environment resque:scheduler RAILS_ENV={{app_stage}} PIDFILE=#{pid_file}"
-      stop_signals [:QUIT, 10]
-
-      check :cpu, every: 30, below: 100, times: 5
-      check :memory, every: 30, below: 350.megabytes, times: 5
-    end
+    {% endif %}
   end
+
+  {% if resque %}
+    group 'resque' do
+      resque_workers.times do |number|
+        process :"worker_#{number}" do
+          pid_file File.join(app_base_dir, "shared/tmp/pids/resque_#{number}.pid")
+          stdall File.join(app_base_dir, 'shared/log/eye-resque.log')
+          daemonize true
+
+          start_command "bundle exec rake environment resque:work RAILS_ENV={{app_stage}} QUEUE=* PIDFILE=#{pid_file}"
+          stop_signals [:QUIT, 0, :TERM, 10.seconds, :KILL]
+
+          check :cpu, every: 30, below: 100, times: 5
+          check :memory, every: 30, below: 350.megabytes, times: 5
+        end
+      end
+
+      {% if resque_scheduler %}
+        process :scheduler do
+          pid_file File.join(app_base_dir, "shared/tmp/pids/resque_scheduler.pid")
+          stdall File.join(app_base_dir, 'shared/log/eye-resque-scheduler.log')
+          daemonize true
+
+          start_command "bundle exec rake environment resque:scheduler RAILS_ENV={{app_stage}} PIDFILE=#{pid_file}"
+          stop_signals [:QUIT, 10]
+
+          check :cpu, every: 30, below: 100, times: 5
+          check :memory, every: 30, below: 350.megabytes, times: 5
+        end
+      {% endif %}
+    end
+  {% endif %}
 end
