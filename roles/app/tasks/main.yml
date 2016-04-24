@@ -5,6 +5,12 @@
 - name: 'database'
   sudo_user: postgres
   postgresql_db: 'name={{db_name}} state=present encoding=utf8'
+- name: 'hstore'
+  sudo_user: postgres
+  shell: "psql -c 'CREATE EXTENSION IF NOT EXISTS hstore;'"
+  with_items: '{{db_name}}'
+  when: db_hstore is defined and db_hstore
+
 - name: 'database user'
   sudo_user: postgres
   postgresql_user: 'db={{db_name}} name={{db_user}} password={{db_user_password}} priv=ALL state=present'
@@ -34,3 +40,4 @@
 - name: 'eye | restart'
   sudo_user: '{{apps_user}}'
   shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/shims:$PATH" . ~/.bashrc && eye restart {{app_name}}'
+  ignore_errors: yes
