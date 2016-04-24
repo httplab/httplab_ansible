@@ -9,10 +9,10 @@
   remote_user: dvps
   sudo: true
   roles:
-    - { role: 'nginx' }
+    - { role: 'nginx', tags: ['nginx']  }
     - { role: 'nodejs' }
-    - { role: 'redis' }
-    - { role: 'postgresql' }
+    - { role: 'redis', tags: ['redis'] }
+    - { role: 'postgresql', tags: ['postgres'] }
 
 # apps user environment.
 - hosts: all

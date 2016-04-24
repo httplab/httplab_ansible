@@ -1,15 +1,19 @@
 - name: 'apt | repository'
   apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main' state=present
+  tags: ['postgres']
 
 - name: 'apt | install postgresql'
   apt: name={{item}} state=latest force=yes
   with_items:
     - postgresql-9.4
     - postgresql-server-dev-9.4
+  tags: ['postgres']
 
 - name: 'apt | install postgresql-contrib'
   apt: name=postgresql-contrib-9.4 state=latest force=yes
   when: db_hstore is defined and db_hstore
+  tags: ['postgres']
 
 - name: 'start service'
   action: service name=postgresql state=started
+  tags: ['postgres']

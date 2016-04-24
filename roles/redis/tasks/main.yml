@@ -1,2 +1,5 @@
 - name: 'apt | install'
   apt: name=redis-server
+  notify:
+    - restart redis-server
+  tags: ['redis']
