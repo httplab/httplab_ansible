@@ -1,17 +1,20 @@
-- name: 'apt | repository'
-  apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main' state=present
+- name: postgresql | apt | repository
+  apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main' state=present
   tags: ['postgres']
 
-- name: 'apt | install postgresql'
+- name: postgresql | apt | repository key
+  apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present
+  tags: ['postgres']
+
+- name: postgresql | apt | install postgresql
   apt: name={{item}} state=latest force=yes
   with_items:
-    - postgresql-9.4
-    - postgresql-server-dev-9.4
+    - postgresql-{{ postgresql_version }}
+    - postgresql-server-dev-{{ postgresql_version }}
   tags: ['postgres']
 
-- name: 'apt | install postgresql-contrib'
-  apt: name=postgresql-contrib-9.4 state=latest force=yes
-  when: db_hstore is defined and db_hstore
+- name: postgresql | apt | install postgresql-contrib
+  apt: name=postgresql-contrib-{{ postgresql_version }} state=latest force=yes
   tags: ['postgres']
 
 - name: 'start service'
