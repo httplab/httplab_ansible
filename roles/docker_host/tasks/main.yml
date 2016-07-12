@@ -1,0 +1,17 @@
+---
+  - name: Install docker-py
+    pip: name=docker-py
+
+  - name: Install Docker
+    shell: curl -sSL https://get.docker.com/ | sudo bash
+
+  - name: Ensure docker-compose is installed and available
+    shell: curl -L https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+
+  - name: Set attributes for docker-compose
+    file:
+      path="/usr/local/bin/docker-compose"
+      state=file
+      mode=0755
+      owner={{ ansible_ssh_user }}
+      group=docker
