@@ -1,89 +1,33 @@
-# Accounts, keys.
-- name: 'account | create dvps'
-  user: 'name={{dvps_user}} shell=/bin/bash groups=sudo'
-- name: 'account | add authorized_keys to dvps_user'
-  authorized_key: user={{dvps_user}} key='{{lookup("file", "keys/" + item + ".pub")}}'
-  with_items: developers
-- name: 'account | create apps_user'
-  user: 'name={{apps_user}} shell=/bin/bash generate_ssh_key=yes'
-- name: 'account | add authorized_keys to apps_user'
-  authorized_key: user={{apps_user}} key='{{lookup("file", "keys/" + item + ".pub")}}'
-  with_items: developers
-- name: 'account | create developers accounts'
-  user: 'name={{item}} shell=/bin/bash groups=apps,sudo'
-  with_items: developers
-- name: 'account | add authorized_keys to developers'
-  authorized_key: user={{item}} key='{{lookup("file", "keys/" + item + ".pub")}}'
-  with_items: developers
+# System update, requirements.
+- name: apt | update cache
+  apt: update_cache=yes
 
-# sudo settings
-- name: 'sudo | nopassword for sudo'
-  lineinfile: "dest=/etc/sudoers state=present regexp='^%sudo' line='%sudo ALL=(ALL) NOPASSWD: ALL'"
+# TODO: uncomment if you need to enable system upgrading.
+# - name: 'apt | upgrade dist'
+#   apt: upgrade=dist
 
-# ssh settings
-# TODO: uncomment for disable root login and password authentication.
-# - name: 'ssh | prevent root login'
-#   replace: "dest=/etc/ssh/sshd_config regexp='^#PermitRootLogin yes$' replace='PermitRootLogin no'"
-# - name: 'ssh | disable password authentication'
-#   replace: "dest=/etc/ssh/sshd_config regexp='^PasswordAuthentication yes$' replace='PasswordAuthentication no'"
+- name: apt | install packages
+  apt: name={{item}} state=latest
+  with_items: '{{ packages }}'
+
+- name: set hostname
+  hostname: name={{ inventory_hostname }}
+
+- name: ntp | enable sync
+  service: name=ntp state=started enabled=yes
 
 # Date and time
-# TODO: uncomment for timezone setup.
 # - name: 'datetime | remove localtime file'
 #   file: 'path=/etc/localtime state=absent'
 # - name: 'datetime | link Moscow localtime file'
 #   file: 'src=/usr/share/zoneinfo/Europe/Moscow dest=/etc/localtime state=link'
 
-# System update, requirements.
-# TODO: uncomment if you need to enable system upgrading.
-# - name: 'apt | upgrade dist'
-#   apt: upgrade=dist
-- name: 'apt | install dependencies'
-  apt: name={{item}} state=latest
-  with_items:
-    - tmux
-    - screen
-    - vim
-    - mc
-    - git
-    - sudo
-    - zip
-    - unzip
-    - pigz
-    - aptitude
-    - htop
-    - iotop
-    - iftop
-    - sysstat
-    - rkhunter
-    - chkrootkit
-    - nscd
-    - lsof
-    - strace
-    - multitail
-    - bzip2
-    - libtool
-    - cmake
-    - imagemagick
-    - libmagickwand-dev
-    - libxslt-dev
-    - libxml2-dev
-    - libcurl4-openssl-dev
-    - curl
-    - zlib1g-dev
-    - build-essential
-    - libssl-dev
-    - libreadline-dev
-    - libyaml-dev
-    - libsqlite3-dev
-    - libxml2-dev
-    - libxslt1-dev
-    - libcurl4-openssl-dev
-    - python-software-properties
-    - libffi-dev
-
 # locale settings
-- name: 'locale | locale-gen'
+- name: locale | locale-gen
   shell: 'locale-gen {{ default_locale }}'
-- name: 'locale | default environment'
+
+- name: locale | default environment
   lineinfile: "dest=/etc/default/locale state=present line='LC_ALL=\"{{ default_locale }}\"'"
+
+- include: users.yml
+- include: ssh.yml

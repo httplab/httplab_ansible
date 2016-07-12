@@ -1,0 +1,44 @@
+default_locale: 'en_US.UTF-8'
+
+packages:
+  - build-essential
+  - ca-certificates
+  - tmux
+  - vim
+  - git
+  - sudo
+  - zip
+  - unzip
+  - pigz
+  - aptitude
+  - htop
+  - iotop
+  - iftop
+  - sysstat
+  - rkhunter
+  - chkrootkit
+  - nscd
+  - lsof
+  - strace
+  - multitail
+  - bzip2
+  - libtool
+  - cmake
+  - curl
+  - python-software-properties
+  - python-pip
+  - ntp
+  - imagemagick
+  - libmagickwand-dev
+  - libxslt-dev
+  - libxml2-dev
+  - libcurl4-openssl-dev
+  - zlib1g-dev
+  - libssl-dev
+  - libreadline-dev
+  - libyaml-dev
+  - libsqlite3-dev
+  - libxml2-dev
+  - libxslt1-dev
+  - libcurl4-openssl-dev
+  - libffi-dev
