@@ -2,12 +2,13 @@
 # Basic server setup.
 - hosts: all
   remote_user: root
+  become: true
   roles:
     - { role: 'system_common' }
 
 - hosts: all
-  remote_user: dvps
-  sudo: true
+  remote_user: root
+  become: true
   roles:
     - { role: 'nginx', tags: ['nginx']  }
     - { role: 'nodejs' }
@@ -16,9 +17,9 @@
 
 # apps user environment.
 - hosts: all
-  remote_user: dvps
-  sudo: true
-  sudo_user: '{{apps_user}}'
+  remote_user: root
+  become: true
+  become_user: '{{ apps_user }}'
   roles:
     - { role: 'rbenv' }
-    - { role: 'eye', tags: ['eye'] }
+    # - { role: 'eye', tags: ['eye'] }
