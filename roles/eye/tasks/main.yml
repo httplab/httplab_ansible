@@ -1,7 +1,0 @@
-- name: 'directories'
-  file: 'path={{item}} state=directory owner={{apps_user}} group={{apps_user}}'
-  with_items:
-    - '/home/{{apps_user}}/eye'
-    - '/home/{{apps_user}}/eye/log'
-- name: 'configs'
-  template: 'src=common.rb.j2 dest=/home/{{apps_user}}/eye/common.rb owner={{apps_user}} group={{apps_user}}'
