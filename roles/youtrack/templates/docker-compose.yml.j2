@@ -1,4 +1,4 @@
-youtrack:
+{{ youtrack_container_name }}:
   image: docker.io/uniplug/youtrack
   volumes:
    - {{ docker_data_path }}/{{ youtrack_dir }}/data:/opt/youtrack/data

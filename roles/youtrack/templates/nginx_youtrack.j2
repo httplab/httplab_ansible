@@ -1,4 +1,4 @@
-upstream docker-youtrack {
+upstream docker_{{ youtrack_container_name }} {
   server localhost:{{ youtrack_local_port }};
 }
 
@@ -27,6 +27,6 @@ server {
     proxy_set_header Host       $http_host;   # required for docker client's sake
     proxy_set_header X-Real-IP  $remote_addr; # pass on real client's IP
 
-    proxy_pass http://docker-youtrack;
+    proxy_pass http://docker_{{ youtrack_container_name }};
   }
 }

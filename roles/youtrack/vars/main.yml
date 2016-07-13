@@ -1,3 +1,4 @@
+youtrack_container_name: youtrack
 youtrack_dir: youtrack
 youtrack_public_domain: yt.httplab.ru
 youtrack_local_port: 8001
