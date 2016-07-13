@@ -1,6 +1,9 @@
 apps_user: apps
 rbenv_root: '/home/{{ apps_user }}/.rbenv'
 
+docker_meta_path: '/u/docker/meta'
+docker_data_path: '/u/docker/data'
+
 sidekiq: false
 rescue: false
 rescue_scheduller: false

@@ -1,0 +1,15 @@
+---
+  - name: youtrack | create directory for docker-compose config
+    file: path={{ docker_meta_path }}/{{ youtrack_dir }} state=directory mode=0755 owner={{ apps_user }}
+    become: true
+
+  - name: youtrack | create docker-compose config
+    template: 'src=docker-compose.yml.j2 dest={{ docker_meta_path }}/{{ youtrack_dir }}/docker-compose.yml'
+
+  - name: youtrack | create and run container
+    shell:
+      cmd: docker-compose up --build -d
+      chdir: "{{ docker_meta_path }}/{{ youtrack_dir }}"
+    become: true
+
+  - include: nginx.yml

@@ -1,0 +1,13 @@
+---
+  - name: youtrack | nginx | create logs directory
+    file: path=/var/log/nginx/{{ youtrack_public_domain }} state=directory mode=0755 owner=www-data
+    become: true
+
+  - name: youtrack | nginx | create config
+    template: 'src=nginx_youtrack.j2 dest=/etc/nginx/sites-available/{{ youtrack_public_domain }} owner=root group=root'
+
+  - name: youtrack | nginx | sites-enabled link
+    file: 'src=/etc/nginx/sites-available/{{ youtrack_public_domain  }} dest=/etc/nginx/sites-enabled/{{ youtrack_public_domain  }} state=link'
+
+  - name: youtrack | nginx | reload
+    service: name=nginx state=reloaded
