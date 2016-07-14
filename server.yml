@@ -5,8 +5,9 @@
   become: true
   roles:
     - { role: 'system_common' }
+    - { role: 'docker_host' }
 
-- hosts: all
+- hosts: legacy_hosting
   remote_user: root
   become: true
   roles:
@@ -16,10 +17,9 @@
     - { role: 'postgresql', tags: ['postgres'] }
 
 # apps user environment.
-- hosts: all
+- hosts: legacy_hosting
   remote_user: root
   become: true
   become_user: '{{ apps_user }}'
   roles:
     - { role: 'rbenv' }
-    # - { role: 'eye', tags: ['eye'] }

@@ -1,0 +1,31 @@
+---
+  - name: Create directory for docker-compose config
+    file: path={{ docker_meta_path }}/{{ teamcity_dir }} state=directory mode=0755 owner={{ apps_user }}
+    become: true
+
+  - name: Create docker-compose config
+    template: 'src=docker-compose.yml.j2 dest={{ docker_meta_path }}/{{ teamcity_dir }}/docker-compose.yml'
+
+  - name: Copy Dockerfile for {{ item }}
+    copy: src={{ item }}/Dockerfile dest={{ docker_meta_path }}/{{ teamcity_dir }}/{{ item }}/
+    with_items:
+      - agent
+      - db
+
+  - name: Copy patch_pg_config.sh
+    copy: src=db/patch_pg_config.sh dest={{ docker_meta_path }}/{{ teamcity_dir }}/db/
+
+  - name: Create and run containers
+    shell:
+      cmd: docker-compose up --build -d
+      chdir: "{{ docker_meta_path }}/{{ teamcity_dir }}"
+    become: true
+
+  - name: Scale agent container
+    shell:
+      cmd: docker-compose scale agent={{ teamcity_agents }}
+      chdir: "{{ docker_meta_path }}/{{ teamcity_dir }}"
+    become: true
+    when: teamcity_agents and teamcity_agents|int > 1
+
+  - include: nginx.yml

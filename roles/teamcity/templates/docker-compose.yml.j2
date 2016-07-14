@@ -1,0 +1,35 @@
+version: '2'
+
+services:
+  db:
+    build:
+      context: ./db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=teamcity
+    restart: always
+    volumes:
+      - {{ docker_data_path }}/{{ teamcity_dir }}/postgres:/var/lib/postgresql/data
+
+  web:
+    image: sjoerdmulder/teamcity
+    dns: 8.8.8.8
+    restart: always
+    links:
+      - db
+    ports:
+      - "{{ teamcity_local_port }}:8111"
+    volumes:
+      - {{ docker_data_path }}/{{ teamcity_dir }}/web:/var/lib/teamcity
+
+  agent:
+    build:
+      context: ./agent
+    dns: 8.8.8.8
+    restart: always
+    privileged: true
+    environment:
+      TEAMCITY_SERVER: http://web:8111
+    links:
+      - web

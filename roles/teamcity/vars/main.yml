@@ -1,0 +1,4 @@
+teamcity_dir: teamcity
+teamcity_public_domain: tc.httplab.ru
+teamcity_local_port: 8111
+teamcity_agents: 2

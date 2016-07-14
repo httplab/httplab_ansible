@@ -1,0 +1,13 @@
+---
+  - name: nginx | create logs directory
+    file: path=/var/log/nginx/{{ teamcity_public_domain }} state=directory mode=0755 owner=www-data
+    become: true
+
+  - name: nginx | create config
+    template: 'src=nginx_teamcity.j2 dest=/etc/nginx/sites-available/{{ teamcity_public_domain }} owner=root group=root'
+
+  - name: nginx | sites-enabled link
+    file: 'src=/etc/nginx/sites-available/{{ teamcity_public_domain  }} dest=/etc/nginx/sites-enabled/{{ teamcity_public_domain  }} state=link'
+
+  - name: nginx | reload
+    service: name=nginx state=reloaded
