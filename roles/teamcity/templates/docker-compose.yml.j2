@@ -12,6 +12,13 @@ services:
     volumes:
       - {{ docker_data_path }}/{{ teamcity_dir }}/postgres:/var/lib/postgresql/data
 
+  agents_db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    restart: always
+
   web:
     image: sjoerdmulder/teamcity
     dns: 8.8.8.8
@@ -33,3 +40,4 @@ services:
       TEAMCITY_SERVER: http://web:8111
     links:
       - web
+      - agents_db
