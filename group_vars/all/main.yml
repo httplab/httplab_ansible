@@ -1,3 +1,4 @@
+dvps_user: dvps
 apps_user: apps
 rbenv_root: '/home/{{ apps_user }}/.rbenv'
 

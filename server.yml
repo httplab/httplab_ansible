@@ -2,16 +2,15 @@
 # Basic server setup.
 - hosts: all
   remote_user: root
-  become: true
   roles:
-    - { role: 'system_common' }
-    - { role: 'docker_host' }
+    - system_common
+    - nginx
+    - docker_host
 
 - hosts: legacy_hosting
-  remote_user: root
+  remote_user: dvps
   become: true
   roles:
-    - { role: 'nginx', tags: ['nginx']  }
     - { role: 'nodejs' }
     - { role: 'redis', tags: ['redis'] }
     - { role: 'postgresql', tags: ['postgres'] }

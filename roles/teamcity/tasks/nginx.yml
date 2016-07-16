@@ -5,9 +5,12 @@
 
   - name: nginx | create config
     template: 'src=nginx_teamcity.j2 dest=/etc/nginx/sites-available/{{ teamcity_public_domain }} owner=root group=root'
+    become: true
 
   - name: nginx | sites-enabled link
     file: 'src=/etc/nginx/sites-available/{{ teamcity_public_domain  }} dest=/etc/nginx/sites-enabled/{{ teamcity_public_domain  }} state=link'
+    become: true
 
   - name: nginx | reload
     service: name=nginx state=reloaded
+    become: true

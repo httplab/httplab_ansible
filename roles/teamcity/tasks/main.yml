@@ -1,6 +1,6 @@
 ---
   - name: Create directory for docker-compose config
-    file: path={{ docker_meta_path }}/{{ teamcity_dir }} state=directory mode=0755 owner={{ apps_user }}
+    file: path={{ docker_meta_path }}/{{ teamcity_dir }} state=directory mode=0755 owner={{ dvps_user }}
     become: true
 
   - name: Create docker-compose config

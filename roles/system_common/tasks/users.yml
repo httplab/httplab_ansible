@@ -1,25 +1,27 @@
 # Accounts, keys.
+---
+
 - debug: msg="File {{ item | basename }} located at  {{ item }}"
   with_fileglob:
     - ../../../public_keys/*
 
-- name: Create sudo users
+- name: Create devops user
+  user: name={{ dvps_user }} groups=sudo shell=/bin/bash generate_ssh_key=true
+
+- name: Add authorized_keys to devops user
+  authorized_key: user={{ dvps_user }} key="{{ lookup('file', item) }}"
+  with_fileglob:
+    - ../../../public_keys/*
+
+- name: Create developers users
   user: name={{ item | basename }} group=sudo shell=/bin/bash
   with_fileglob:
     - ../../../public_keys/*
 
-- name: Setup authorized key
+- name: Setup authorized key for developers
   authorized_key: user={{ item | basename }} key="{{ lookup('file', item) }}"
   with_fileglob:
     - ../../../public_keys/*
 
-- name: Allow admins to perform sudo commands without password
+- name: Allow sudo users to perform sudo commands without password
   copy: content="%sudo ALL=(ALL) NOPASSWD:ALL" dest="/etc/sudoers.d/sudo_group"
-
-- name: account | create apps_user
-  user: 'name={{ apps_user }} shell=/bin/bash generate_ssh_key=yes'
-
-- name: account | add authorized_keys to apps_user
-  authorized_key: user={{ apps_user }} key='{{ lookup('file', item) }}'
-  with_fileglob:
-    - ../../../public_keys/*
