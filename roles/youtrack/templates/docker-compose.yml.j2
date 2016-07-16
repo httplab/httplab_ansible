@@ -1,7 +1,11 @@
-{{ youtrack_container_name }}:
-  image: docker.io/uniplug/youtrack
-  volumes:
-   - {{ docker_data_path }}/{{ youtrack_dir }}/data:/opt/youtrack/data
-   - {{ docker_data_path }}/{{ youtrack_dir }}/backup:/opt/youtrack/backup
-  ports:
-    - "{{ youtrack_local_port }}:80"
+version: '2'
+
+services:
+  {{ youtrack_container_name }}:
+    image: docker.io/uniplug/youtrack
+    restart: always
+    volumes:
+     - {{ docker_data_path }}/{{ youtrack_dir }}/data:/opt/youtrack/data
+     - {{ docker_data_path }}/{{ youtrack_dir }}/backup:/opt/youtrack/backup
+    ports:
+      - "{{ youtrack_local_port }}:80"

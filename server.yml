@@ -1,5 +1,6 @@
----
 # Basic server setup.
+---
+
 - hosts: all
   remote_user: root
   roles:

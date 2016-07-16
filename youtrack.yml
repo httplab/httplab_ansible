@@ -1,5 +1,7 @@
+---
+
 - hosts: youtrack
-  remote_user: root
+  remote_user: dvps
   become: true
   roles:
-    - { role: 'youtrack' }
+    - youtrack
