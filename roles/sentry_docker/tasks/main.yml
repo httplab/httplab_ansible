@@ -3,8 +3,13 @@
   file: path={{ docker_meta_path }}/{{ sentry_dir }} state=directory mode=0755 owner={{ dvps_user }}
   become: true
 
-- name: Create docker-compose config
-  template: 'src=docker-compose.yml.j2 dest={{ docker_meta_path }}/{{ sentry_dir }}/docker-compose.yml'
+- name: Create docker-compose and .env configs
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ docker_meta_path }}/{{ sentry_dir }}/{{ item }}"
+  with_items:
+    - docker-compose.yml
+    - .env
 
 - name: Run Compose build
   shell:
