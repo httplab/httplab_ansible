@@ -2,3 +2,6 @@
 sentry_dir: sentry
 sentry_public_domain: sentry.lan
 sentry_local_port: 8010
+sentry_db_user: postgres
+sentry_db_password: postgres
+sentry_db_name: postgres
