@@ -1,0 +1,17 @@
+---
+- name: Run Solr container
+  docker:
+    name: fa_solr
+    image: solr
+    memory_limit: 1024000000
+    state: reloaded
+    restart_policy: always
+    ports: 8983:8983
+
+- name: Drop all incoming external traffic on Solr port
+  shell: iptables -A INPUT -p tcp --dport 8983 ! -s 127.0.0.1 -j DROP
+  become: yes
+
+- name: Persist this iptables config across reboots
+  command: iptables-save
+  become: yes

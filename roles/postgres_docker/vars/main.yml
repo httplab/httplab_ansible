@@ -1,0 +1,4 @@
+pg_container_name: postgres
+pg_local_port: 5432
+pg_memory_limit: 1024000000
+

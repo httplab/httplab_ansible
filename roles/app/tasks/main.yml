@@ -1,57 +1,62 @@
-- name: 'nginx | create config'
-  template: 'src=nginx/{{ app_stage }}.conf.j2 dest=/etc/nginx/sites-available/{{app_name}} owner=root group=root'
-  tags: ['nginx']
+---
+- name: Install psycopg2
+  apt: name=python-psycopg2 state=latest
 
-- name: 'nginx | sites-enabled link'
-  file: 'src=/etc/nginx/sites-available/{{app_name}} dest=/etc/nginx/sites-enabled/{{app_name}} state=link'
-  tags: ['nginx']
+# - name: Install psycopg2
+#   pip: name=psycopg2
 
-- name: 'database'
-  sudo_user: postgres
-  postgresql_db: 'name={{db_name}} state=present encoding=utf8'
-  tags: ['postgres']
+- name: Create app deployer user
+  user: name={{ apps_user }} groups=sudo shell=/bin/bash generate_ssh_key=true
 
-- name: 'hstore'
-  sudo_user: postgres
-  shell: "psql -c 'CREATE EXTENSION IF NOT EXISTS hstore;'"
-  with_items: '{{db_name}}'
-  when: db_hstore is defined and db_hstore
-  tags: ['postgres']
+- name: Add authorized_keys to deployer user
+  authorized_key: user={{ apps_user }} key="{{ lookup('file', item) }}"
+  with_fileglob:
+    - ../../../public_keys/*
 
-- name: 'database user'
-  sudo_user: postgres
-  postgresql_user: 'db={{db_name}} name={{db_user}} password={{db_user_password}} priv=ALL state=present'
-  tags: ['postgres']
-
-- name: 'application directories'
-  file: 'path={{item}} state=directory owner={{apps_user}} group={{apps_user}}'
+- name: Create application directories
+  file: 'path={{ item }} state=directory owner={{ apps_user }} group={{ apps_user }}'
   with_items:
-    - '/u/apps/{{app_name}}'
-    - '/u/apps/{{app_name}}/shared/config'
-    - '/u/apps/{{app_name}}/shared/log'
-    - '/u/apps/{{app_name}}/shared/public'
-    - '/u/apps/{{app_name}}/shared/tmp/pids'
-    - '/u/apps/{{app_name}}/shared/tmp/sockets'
+    - '/u/apps/{{ app_name }}'
+    - '/u/apps/{{ app_name }}/shared/config'
+    - '/u/apps/{{ app_name }}/shared/log'
+    - '/u/apps/{{ app_name }}/shared/public'
+    - '/u/apps/{{ app_name }}/shared/tmp/pids'
+    - '/u/apps/{{ app_name }}/shared/tmp/sockets'
 
-- name: 'application configs'
-  template: 'src=app_configs/{{item}}.j2 dest=/u/apps/{{app_name}}/shared/config/{{item}} owner={{apps_user}} group={{apps_user}}'
+- name: Copy application configs
+  template:
+    src: "app_configs/{{ item }}.j2"
+    dest: "/u/apps/{{ app_name }}/shared/config/{{ item }}"
+    owner: "{{ apps_user }}"
+    group: "{{ apps_user }}"
   with_items:
-    - 'database.yml'
-    - 'secrets.yml'
-    - 'redis.yml'
+    - database.yml
+    - secrets.yml
 
-# Eye tasks
-- name: 'eye | config'
-  template: 'src=eye/{{app_stage}}.rb.j2 dest=/home/{{apps_user}}/eye/{{app_name}}.rb owner={{apps_user}} group={{apps_user}}'
-  tags: ['eye']
+- name: Copy .env file
+  template:
+    src: "app_configs/.env.staging"
+    dest: "/u/apps/{{ app_name }}/shared/"
+    owner: "{{ apps_user }}"
+    group: "{{ apps_user }}"
 
-- name: 'eye | load'
-  sudo_user: '{{apps_user}}'
-  shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/shims:$PATH" . ~/.bashrc && eye load ~/eye/{{app_name}}.rb'
-  tags: ['eye']
+- name: Create application database
+  sudo_user: postgres
+  postgresql_db:
+    name: "{{ db_name }}"
+    encoding: utf8
+    login_user: postgres
+    login_password: 12345678
+    login_host: localhost
+    state: present
 
-- name: 'eye | restart'
-  sudo_user: '{{apps_user}}'
-  shell: 'RBENV_ROOT={{rbenv_root}} PATH="$RBENV_ROOT/shims:$PATH" . ~/.bashrc && eye restart {{app_name}}'
-  ignore_errors: yes
-  tags: ['eye']
+- name: Create database user
+  postgresql_user:
+    name: "{{ db_user }}"
+    db: "{{ db_name }}"
+    priv: ALL
+    login_user: postgres
+    login_password: 12345678
+    login_host: localhost
+    password: "{{ db_user_password }}"
+    state: present

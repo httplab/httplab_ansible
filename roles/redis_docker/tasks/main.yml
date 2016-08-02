@@ -1,0 +1,17 @@
+---
+- name: Run Redis container
+  docker:
+    name: c_redis
+    image: redis
+    memory_limit: 1024000000
+    state: reloaded
+    restart_policy: always
+    ports: 6379:6379
+
+- name: Drop all incoming external traffic on postgres port
+  shell: iptables -A INPUT -p tcp --dport 6379 ! -s 127.0.0.1 -j DROP
+  become: yes
+
+- name: Persist this iptables config across reboots
+  command: iptables-save
+  become: yes

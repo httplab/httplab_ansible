@@ -11,7 +11,7 @@
   with_items: '{{ packages }}'
 
 - name: set hostname
-  hostname: name={{ inventory_hostname }}
+  hostname: name={{ (not server_hostname and inventory_hostname) or server_hostname }}
 
 - name: ntp | enable sync
   service: name=ntp state=started enabled=yes

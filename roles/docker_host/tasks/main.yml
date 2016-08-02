@@ -1,26 +1,32 @@
 ---
-  - name: docker_host | apt | install packages
-    apt: name={{ item }} state=latest
-    with_items:
-      - apt-transport-https
-      - docker-engine
+  - name: Install apt-transport-https
+    apt: name=apt-transport-https state=latest
 
-  - name: docker_host | start service
+  - name: Add docker repository
+    apt_repository: repo='deb https://apt.dockerproject.org/repo debian-jessie main' state=present
+
+  - name: Add repository key
+    apt_key: keyserver=hkp://p80.pool.sks-keyservers.net:80 id=58118E89F3A912897C070ADBF76221572C52609D state=present
+
+  - name: Install docker package
+    apt: name=docker-engine allow_unauthenticated=yes state=latest
+
+  - name: Start service
     action: service name=docker state=started
 
-  # - name: Ensure docker-compose is installed and available
-  #   shell: curl -L https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+  - name: Ensure docker-compose is installed and available
+    shell: curl -L https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
 
-  - name: docker_host | set attributes for docker-compose
+  - name: Set attributes for docker-compose
     file:
       path="/usr/local/bin/docker-compose"
       state=file
       mode=0755
-      owner={{ ansible_ssh_user }}
+      owner={{ dvps_user }}
       group=docker
 
-  - name: docker_host | Ensure that target directories exists with correct access rights
-    file: path={{ item }} state=directory mode=0755 owner={{ apps_user }}
+  - name: Ensure that target directories exists with correct access rights
+    file: path={{ item }} state=directory mode=0755 owner={{ dvps_user }}
     become: true
     with_items:
       - '{{ docker_meta_path }}'

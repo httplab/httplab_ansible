@@ -1,0 +1,45 @@
+---
+# - name: install docker-py
+#   pip: name=docker-py
+
+- name: Create directories
+  file: path={{ item }} state=directory mode=0755 owner={{ dvps_user }}
+  become: true
+  with_items:
+    - "{{ docker_meta_path }}/{{ pg_container_name }}"
+    - "{{ docker_data_path }}/{{ pg_container_name }}/data"
+
+- name: Copy Dockerfile and patch_pg_config.sh
+  copy: src={{ item }} dest={{ docker_meta_path }}/{{ pg_container_name }} owner={{ dvps_user }}
+  with_items:
+    - Dockerfile
+    - patch_pg_config.sh
+
+- name: Build PG Image
+  docker_image:
+    name: "{{ pg_container_name }}"
+    path: "{{ docker_meta_path }}/{{ pg_container_name }}"
+    state: present
+
+- name: Run DB container
+  docker:
+    name: "c_{{ pg_container_name }}"
+    image: "{{ pg_container_name }}"
+    memory_limit: "{{ pg_memory_limit }}"
+    state: reloaded
+    restart_policy: always
+    env:
+      DB_USER: postgres
+      DB_PASSWORD: 12345678
+    volumes:
+      - "{{ docker_meta_path }}/{{ pg_container_name }}/data:/var/lib/postgresql"
+    ports:
+      - "{{ pg_local_port }}:5432"
+
+- name: Drop all incoming external traffic on postgres port
+  shell: iptables -A INPUT -p tcp --dport {{ pg_local_port }} ! -s 127.0.0.1 -j DROP
+  become: yes
+
+- name: Persist this iptables config across reboots
+  command: iptables-save
+  become: yes
