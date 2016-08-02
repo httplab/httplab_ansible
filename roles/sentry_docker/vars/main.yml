@@ -1,0 +1,4 @@
+---
+sentry_dir: sentry
+sentry_public_domain: sentry.lan
+sentry_local_port: 8010

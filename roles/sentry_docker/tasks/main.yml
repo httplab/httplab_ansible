@@ -1,0 +1,33 @@
+---
+- name: Create directory for docker-compose config
+  file: path={{ docker_meta_path }}/{{ sentry_dir }} state=directory mode=0755 owner={{ dvps_user }}
+  become: true
+
+- name: Create docker-compose config
+  template: 'src=docker-compose.yml.j2 dest={{ docker_meta_path }}/{{ sentry_dir }}/docker-compose.yml'
+
+- name: Run Compose build
+  shell:
+    cmd: docker-compose build
+    chdir: "{{ docker_meta_path }}/{{ sentry_dir }}"
+  become: true
+
+- name: Run Compose create
+  shell:
+    cmd: docker-compose create
+    chdir: "{{ docker_meta_path }}/{{ sentry_dir }}"
+  become: true
+
+- name: Run Sentry upgrade
+  shell:
+    cmd: docker-compose run --rm web sentry upgrade
+    chdir: "{{ docker_meta_path }}/{{ sentry_dir }}"
+  become: true
+
+- name: Run Compose start
+  shell:
+    cmd: docker-compose start
+    chdir: "{{ docker_meta_path }}/{{ sentry_dir }}"
+  become: true
+
+- include: 'nginx.yml'

@@ -1,0 +1,19 @@
+---
+  - name: Create logs directory
+    file: path="/var/log/nginx/{{ sentry_public_domain }}" state=directory mode=0755 owner=www-data
+    become: true
+
+  - name: Create config
+    template: 'src=nginx_sentry.j2 dest=/etc/nginx/sites-available/{{ sentry_public_domain }} owner=www-data'
+    become: true
+
+  - name: Sites-enabled link
+    file:
+      src: "/etc/nginx/sites-available/{{ sentry_public_domain }}"
+      dest: "/etc/nginx/sites-enabled/{{ sentry_public_domain }}"
+      state: link
+    become: true
+
+  - name: Reload nginx
+    service: name=nginx state=reloaded
+    become: true
